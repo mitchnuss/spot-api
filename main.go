@@ -1,20 +1,37 @@
 package main
 
 import (
-	"fmt"
-	"html"
+	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
+//GenericMessage default Message
+type GenericMessage struct {
+	Message string `json: "message"`
+}
+
+//Easy message realy structure
+type genericResponse struct {
+	Data GenericMessage `json: "data"`
+}
+
 func main() {
 	// Init Router
-	router := mux.NewRouter()
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/h", helloW)
 	log.Fatal(http.ListenAndServe(":23450", router))
 }
 
-func hello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World, %q", html.EscapeString(r.URL.Path))
+// Displays hello world
+func helloW(w http.ResponseWriter, r *http.Request) {
+	response := genericResponse{
+		Data: GenericMessage{
+			Message: "Hello World",
+		},
+	}
+
+	json.NewEncoder(w).Encode(response)
 }
