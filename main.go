@@ -21,7 +21,7 @@ type genericResponse struct {
 func main() {
 	// Init Router
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/h", helloW)
+	router.HandleFunc("/h", helloW).Methods("GET")
 	log.Fatal(http.ListenAndServe(":23450", router))
 }
 
