@@ -1,33 +1,42 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/guregu/dynamo"
 )
 
 //People information in SPOT
+//add age group srt, baptized bool, slackID str, ThisIsHome bool, DiscoverYour
 type People struct {
-	CreatedAt      int64  `dynamodb:"CreatedAt" json:"CreatedAt"`
-	Email          string `dynamodb:"Email" json:"Email"`
-	FirstDecision  bool   `dynamodb:"FirstDecision" json:"FirstDecision"`
-	FirstName      string `dynamodb:"FirstName" json:"FirstName"`
-	FullName       string `dynamodb:"Fullname" json:"FullName"`
-	LastName       string `dynamodb:"LastName" json:"LastName"`
-	LastUpdated    int64  `dynamodb:"LastUpdated" json:"LastUpdated"`
-	MembershipType string `dynamodb:"MembershipType" json:"MembershipType"`
-	NewCreation    bool   `dynamodb:"NewCreation" json:"NewCreation"`
-	PhoneNumber    string `dynamodb:"PhoneNumber" json:"PhoneNumber"`
-	Rededication   bool   `dynamodb:"Rededication" json:"Rededication"`
-	UUID           string `dynamodb:"UUID" json:"UUID"`
-	Volunteer      bool   `dynamodb:"Volunteer" json:"Volunteer"`
+	AgeGroup            string `dynamo:"AgeGroup,omitempty" json:"AgeGroup,omitempty"`
+	Baptized            bool   `dynamo:"Baptized,omitempty" json:"Baptized,omitempty"`
+	Birthday            string `dynamo:"Birthday,omitempty" json:"Birthday,omitempty"`
+	Email               string `dynamo:"Email,omitempty" json:"Email,omitemptyv"`
+	FirstName           string `dynamo:"FirstName,omitempty" json:"FirstName,omitempty"`
+	FullName            string `dynamo:"FullName,omitempty" json:"FullName,omitempty"`
+	Gender              string `dynamo:"Gender,omitempty" json:"Gender,omitempty"`
+	LastName            string `dynamo:"LastName,omitempty" json:"LastName,omitempty"`
+	CreatedAt           int64  `dynamo:"CreatedAt,omitempty" json:"CreatedAt,omitempty"`
+	LastUpdated         int64  `dynamo:"LastUpdated,omitempty" json:"LastUpdated,omitempty"`
+	MembershipType      string `dynamo:"MembershipType,omitempty" json:"MembershipType,omitempty"`
+	PhoneNumber         string `dynamo:"PhoneNumber,omitempty" json:"PhoneNumber,omitempty"`
+	ReceiveEmail        bool   `dynamo:"ReceiveEmail,omitempty" json:"ReceiveEmail,omitempty"`
+	SlackID             string `dynamo:"SlackID,omitempty" json:"SlackID,omitempty"`
+	UUID                string `dynamo:"UUID,omitempty" json:"UUID,omitempty"`
+	NewCreation         bool   `dynamo:"NewCreation,omitempty" json:"NewCreation,omitempty"`
+	FirstDecision       bool   `dynamo:"FirstDecision,omitempty" json:"FirstDecision,omitempty"`
+	Rededication        bool   `dynamo:"Rededication,omitempty" json:"Rededication,omitempty"`
+	Volunteer           bool   `dynamo:"Volunteer,omitempty" json:"Volunteer,omitempty"`
+	ThisIsHome          bool   `dynamo:"ThisIsHome,omitempty" json:"ThisIsHome,omitempty"`
+	DiscoverYourPurpose bool   `dynamo:"DiscoverYourPurpose,omitempty" json:"DiscoverYourPurpose,omitempty"`
 }
 
 var people []People
@@ -36,79 +45,64 @@ func main() {
 	// Init Router
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/api/v1/people/{id}", getSingle).Methods("GET")
+	router.HandleFunc("/api/v1/people", getAll).Methods("GET")
 	log.Fatal(http.ListenAndServe(":8000", router))
-}
-
-//checks for empty strings in SPOT
-func checkValidStr(attr string) string {
-	if attr == "" {
-		return "n/a"
-	}
-	return attr
-}
-
-//checks for empty Booleans in SPOT
-func checkValidBool(attr bool) bool {
-	if attr == false {
-		return false
-	}
-	return true
 }
 
 // Will pull one person's info
 func getSingle(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["id"]
+	db := dynamo.New(session.New(), &aws.Config{Region: aws.String("us-east-1")})
+	table := db.Table("SPOT")
 
-	// starts session with us-east-1 dynamodb and loads credentials
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String("us-east-1")},
-	)
-	//creates Dynamo Client
-	svc := dynamodb.New(sess)
-
-	result, err := svc.GetItem(&dynamodb.GetItemInput{
-		TableName: aws.String("SPOT"),
-		Key: map[string]*dynamodb.AttributeValue{
-			"UUID": {
-				S: aws.String(userID),
-			},
-		},
-	})
-
+	single := People{}
+	err := table.Get("UUID", userID).One(&single)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println(err)
+	}
+	json.NewEncoder(w).Encode(&single)
+}
+
+func getAll(w http.ResponseWriter, r *http.Request) {
+	db := dynamo.New(session.New(), &aws.Config{Region: aws.String("us-east-1")})
+	table := db.Table("SPOT")
+
+	people := []People{}
+	err := table.Scan().All(&people)
+	if err != nil {
+		fmt.Println(err)
+	}
+	json.NewEncoder(w).Encode(&people)
+	//fmt.Println(people)
+	cleanData := []People{}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.AgeGroup == "" {
+			cleanPerson.AgeGroup = "na"
+		} else {
+			cleanPerson.AgeGroup = p.AgeGroup
+		}
+		cleanData = append(cleanData, p)
 		return
 	}
 
-	//converts string to int64
-	createdAt, _ := strconv.ParseInt(*result.Item["CreatedAt"].N, 10, 64)
-	lastUpdated, _ := strconv.ParseInt(*result.Item["LastUpdated"].N, 10, 64)
-
-	// TO DO: build a clean struct with the clean data
-	// TO DO: return the clean struct in JSON format
-	member := People{
-		CreatedAt:      createdAt,
-		Email:          checkValidStr(*result.Item["Email"].S),
-		FirstDecision:  checkValidBool(*result.Item["FirstDecision"].BOOL),
-		FirstName:      checkValidStr(*result.Item["FirstName"].S),
-		FullName:       checkValidStr(*result.Item["FullName"].S),
-		LastName:       checkValidStr(*result.Item["LastName"].S),
-		LastUpdated:    lastUpdated,
-		MembershipType: checkValidStr(*result.Item["MembershipType"].S),
-		NewCreation:    checkValidBool(*result.Item["NewCreation"].BOOL),
-		PhoneNumber:    checkValidStr(*result.Item["PhoneNumber"].S),
-		Rededication:   checkValidBool(*result.Item["Rededication"].BOOL),
-		UUID:           checkValidStr(*result.Item["UUID"].S),
-		Volunteer:      checkValidBool(*result.Item["Volunteer"].BOOL),
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.CreatedAt == "" {
+			cleanPerson.CreatedAt = "na"
+		} else {
+			cleanPerson.CreatedAt = p.CreatedAt
+		}
+		cleanData = append(cleanData, p)
+		return
 	}
-	fmt.Println(member)
 
-	// if err != nil {
-	// 	panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
-	// } //Sprintf formats according to a format specifier and returns the resulting string.
+	// loop through people list
+	// for each person, create a clean People sruct
+	// if field is nil make value "n/a"
+	// once clean struct is complete put clean new person in "cleanData"
+	// return new lists
 
-	// if item.UUID == "" {
-	// 	fmt.Println("Could not find the UUID specified")
-	//}
 }
