@@ -14,7 +14,6 @@ import (
 )
 
 //People information in SPOT
-//add age group srt, baptized bool, slackID str, ThisIsHome bool, DiscoverYour
 type People struct {
 	AgeGroup            string `dynamo:"AgeGroup,omitempty" json:"AgeGroup,omitempty"`
 	Baptized            bool   `dynamo:"Baptized,omitempty" json:"Baptized,omitempty"`
@@ -61,9 +60,13 @@ func getSingle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	json.NewEncoder(w).Encode(&single)
+	//One to create the encoder,
+	//one to set the indent on it
+	//then a final one to call `.Encode()`
+	json.NewEncoder(w).Encode(&people)
 }
 
+// // Will pull everyone's info on database
 func getAll(w http.ResponseWriter, r *http.Request) {
 	db := dynamo.New(session.New(), &aws.Config{Region: aws.String("us-east-1")})
 	table := db.Table("SPOT")
@@ -74,9 +77,9 @@ func getAll(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	json.NewEncoder(w).Encode(&people)
-	//fmt.Println(people)
-	cleanData := []People{}
 
+	// loop through all data and check for empty fields, clean up data and append to struct
+	cleanData := []People{}
 	for _, p := range people {
 		cleanPerson := People{}
 		if p.AgeGroup == "" {
@@ -90,19 +93,63 @@ func getAll(w http.ResponseWriter, r *http.Request) {
 
 	for _, p := range people {
 		cleanPerson := People{}
-		if p.CreatedAt == "" {
-			cleanPerson.CreatedAt = "na"
+		if p.Baptized == false {
+			cleanPerson.Baptized = false
 		} else {
-			cleanPerson.CreatedAt = p.CreatedAt
+			cleanPerson.Baptized = p.Baptized
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.Birthday == "" {
+			cleanPerson.Birthday = "na"
+		} else {
+			cleanPerson.Birthday = p.Birthday
 		}
 		cleanData = append(cleanData, p)
 		return
 	}
 
-	// loop through people list
-	// for each person, create a clean People sruct
-	// if field is nil make value "n/a"
-	// once clean struct is complete put clean new person in "cleanData"
-	// return new lists
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.Email == "" {
+			cleanPerson.Email = "na"
+		} else {
+			cleanPerson.Email = p.Email
+		}
+		cleanData = append(cleanData, p)
+		return
+	}
 
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.FirstName == "" {
+			cleanPerson.FirstName = "na"
+		} else {
+			cleanPerson.FirstName = p.FirstName
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.FullName == "" {
+			cleanPerson.FullName = "na"
+		} else {
+			cleanPerson.FullName = p.FullName
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.Gender == "" {
+			cleanPerson.Gender = "na"
+		} else {
+			cleanPerson.Gender = p.Gender
+		}
+		cleanData = append(cleanData, p)
+	}
 }
