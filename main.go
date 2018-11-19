@@ -60,9 +60,6 @@ func getSingle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	//One to create the encoder,
-	//one to set the indent on it
-	//then a final one to call `.Encode()`
 	json.NewEncoder(w).Encode(&single)
 }
 
