@@ -60,9 +60,7 @@ func getSingle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	//One to create the encoder,
-	//one to set the indent on it
-	//then a final one to call `.Encode()`
+
 	json.NewEncoder(w).Encode(&single)
 }
 
@@ -149,6 +147,146 @@ func getAll(w http.ResponseWriter, r *http.Request) {
 			cleanPerson.Gender = "na"
 		} else {
 			cleanPerson.Gender = p.Gender
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.LastName == "" {
+			cleanPerson.LastName = "na"
+		} else {
+			cleanPerson.LastName = p.LastName
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.CreatedAt != 0 {
+			cleanPerson.CreatedAt = 0
+		} else {
+			cleanPerson.CreatedAt = p.CreatedAt
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.LastUpdated == 0 {
+			cleanPerson.LastUpdated = 0
+		} else {
+			cleanPerson.LastUpdated = p.LastUpdated
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.MembershipType == "" {
+			cleanPerson.MembershipType = "na"
+		} else {
+			cleanPerson.MembershipType = p.MembershipType
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.PhoneNumber == "" {
+			cleanPerson.PhoneNumber = "na"
+		} else {
+			cleanPerson.PhoneNumber = p.PhoneNumber
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.ReceiveEmail == false {
+			cleanPerson.ReceiveEmail = false
+		} else {
+			cleanPerson.ReceiveEmail = p.ReceiveEmail
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.SlackID == "" {
+			cleanPerson.SlackID = "na"
+		} else {
+			cleanPerson.SlackID = p.SlackID
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.UUID == "" {
+			cleanPerson.UUID = "na"
+		} else {
+			cleanPerson.UUID = p.UUID
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.NewCreation == false {
+			cleanPerson.NewCreation = false
+		} else {
+			cleanPerson.NewCreation = p.NewCreation
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.FirstDecision == false {
+			cleanPerson.FirstDecision = false
+		} else {
+			cleanPerson.FirstDecision = p.FirstDecision
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.Rededication == false {
+			cleanPerson.Rededication = false
+		} else {
+			cleanPerson.Rededication = p.Rededication
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.Volunteer == false {
+			cleanPerson.Volunteer = false
+		} else {
+			cleanPerson.Volunteer = p.Volunteer
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.ThisIsHome == false {
+			cleanPerson.ThisIsHome = false
+		} else {
+			cleanPerson.ThisIsHome = p.ThisIsHome
+		}
+		cleanData = append(cleanData, p)
+	}
+
+	for _, p := range people {
+		cleanPerson := People{}
+		if p.DiscoverYourPurpose == false {
+			cleanPerson.DiscoverYourPurpose = false
+		} else {
+			cleanPerson.DiscoverYourPurpose = p.DiscoverYourPurpose
 		}
 		cleanData = append(cleanData, p)
 	}
