@@ -63,7 +63,7 @@ func getSingle(w http.ResponseWriter, r *http.Request) {
 	//One to create the encoder,
 	//one to set the indent on it
 	//then a final one to call `.Encode()`
-	json.NewEncoder(w).Encode(&people)
+	json.NewEncoder(w).Encode(&single)
 }
 
 // // Will pull everyone's info on database
